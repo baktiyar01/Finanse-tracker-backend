@@ -3,19 +3,22 @@ const { sign, verify } = require("jsonwebtoken");
 const createTokens = (users) => {
   const accessToken = sign(
     { user: users.user, id: users.id },
-    "jwtsecretplschange"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
   );
   return accessToken;
 };
 
 //midleware
 const validateToken = (req, res, next) => {
-  const accessToken = req.cookies["access-token"];
+  const accessToken = req.headers.authorization;
   if (!accessToken)
     return res.status(400).json({ error: "User not Authenticated" });
 
   try {
-    const validToken = verify(accessToken, "jwtsecretplschange");
+    const validToken = verify(
+      accessToken,
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    );
     if (validToken) {
       req.authenticated = true;
       return next();

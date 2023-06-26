@@ -5,6 +5,9 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("./models/User");
+const Expense = require("./models/Expense");
+const Budget = require("./models/Budget");
+const Decimal = require("decimal.js");
 const sequelize = require("./config/database");
 const { createTokens, validateToken } = require("./JWT");
 const app = express();
@@ -87,58 +90,68 @@ app.get("/profile", validateToken, (req, res) => {
   res.send("Hello");
 });
 
-// // Add expense
-// app.post("/budget/addExpense", (req, res) => {
-//   const { budgetId, expenseName, amount } = req.body;
+// Add budget
+app.post("/budget/addBudget", async (req, res) => {
+  // {id }
+  try {
+    const { user_id, budget_name, maximum_spending } = req.body;
+    // Insert the new budget
+    const budget = await Budget.create({
+      user_id,
+      budget_name,
+      maximum_spending,
+    });
 
-//   // Insert the new expense
-//   const insertExpenseQuery =
-//     "INSERT INTO expenses (budget_id, expense_name, amount) VALUES (?, ?, ?)";
-//   db.query(
-//     insertExpenseQuery,
-//     [budgetId, expenseName, amount],
-//     (err, result) => {
-//       if (err) {
-//         console.log(err);
-//         return res.json({ Message: "Error inserting expense" });
-//       }
-//       res.send("Expense added successfully");
-//     }
-//   );
-//   res.send("Success ade");
-// });
+    res.json({ message: "Budget added successfully", budget });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error inserting budget" });
+  }
+});
+//Add expense
+app.post("/budget/addExpense", async (req, res) => {
+  const { expense_name, amount, date, budget_id } = req.body;
 
-// // Add budget
-// app.post("/budget/addBudget", (req, res) => {
-//   const { name, maxSpending } = req.body;
+  try {
+    // Create the expense using the Expense model
+    const expense = await Expense.create({
+      expense_name,
+      amount,
+      date,
+      budget_id,
+    });
 
-//   // Insert the new budget
-//   const insertBudgetQuery =
-//     "INSERT INTO budgets (name, max_spending) VALUES (?, ?)";
-//   db.query(insertBudgetQuery, [name, maxSpending], (err, result) => {
-//     if (err) {
-//       console.log(err);
-//       return res.json({ Message: "Error inserting budget" });
-//     }
-//     res.send("Budget added successfully");
-//   });
-//   res.send("Success addb");
-// });
+    const budget = await Budget.findByPk(budget_id);
+    if (budget) {
+      const budgetAmount = new Decimal(budget.maximum_spending);
+      const expenseAmount = new Decimal(amount);
+      budget.maximum_spending = budgetAmount.minus(expenseAmount).toNumber();
+      await budget.save();
+    }
+    // Return the created expense and updated budget as the response
+    res.json({ expense, budget });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to create expense" });
+  }
+});
 
 // // View expenses
-// app.get("/budget/expenses", (req, res) => {
-//   const budgetId = req.query.budgetId;
+// app.get("/budget/expenses", async (req, res) => {
+//   try {
+//     // Fetch all expenses and include the associated budget information
+//     const expenses = await Expense.findAll({
+//       include: {
+//         model: Budget,
+//         attributes: ["id", "user_id", "budget_name", "maximum_spending"],
+//       },
+//     });
 
-//   // Retrieve expenses for a specific budget
-//   const getExpensesQuery = "SELECT * FROM expenses WHERE budget_id = ?";
-//   db.query(getExpensesQuery, [budgetId], (err, data) => {
-//     if (err) {
-//       console.log(err);
-//       return res.json({ Message: "Error retrieving expenses" });
-//     }
-//     res.json(data);
-//   });
-//   res.send("Success ex");
+//     res.json(expenses);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Failed to fetch expenses" });
+//   }
 // });
 
 // app.get("/analytics", (req, res) => {
