@@ -9,6 +9,7 @@ const Expense = require("./models/Expense");
 const Budget = require("./models/Budget");
 const Decimal = require("decimal.js");
 const sequelize = require("./config/database");
+const config = require("./config/auth.config");
 const { createTokens, validateToken } = require("./JWT");
 const app = express();
 app.use(express.json());
@@ -75,18 +76,20 @@ app.post("/login", async (req, res) => {
         .status(400)
         .json({ error: "Wrong Username and Password Combination!" });
     } else {
-      const accessToken = createTokens(users);
-
-      res.cookie("access-token", accessToken, {
-        maxAge: 60 * 60 * 24 * 30 * 1000,
-        httpOnly: true,
-      });
-      res.send("Logged in");
+      const token = jwt.sign(
+        { user: users.user, id: users.id },
+        config.secret,
+        {
+          allowInsecureKeySizes: true,
+          expiresIn: "1800s", // 3 min
+        }
+      );
+      res.status(200).json({ message: "Authentication successful", token });
     }
   });
 });
 
-app.get("/profile", validateToken, (req, res) => {
+app.get("/profile", verifyToken, (req, res) => {
   res.send("Hello");
 });
 
