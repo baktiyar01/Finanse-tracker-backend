@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/database");
-
+const User = require("./User");
 const Budget = db.define("Budget", {
   id: {
     type: DataTypes.INTEGER,
@@ -30,5 +30,5 @@ const Budget = db.define("Budget", {
     defaultValue: DataTypes.NOW,
   },
 });
-
+Budget.belongsTo(User, { foreignKey: "user_id" });
 module.exports = Budget;

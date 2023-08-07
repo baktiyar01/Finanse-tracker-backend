@@ -17,7 +17,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: ["http://localhost:3000"],
-    methods: ["POST", "GET"],
+    methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true,
   })
 );
@@ -113,49 +113,156 @@ app.post("/budget/addBudget", async (req, res) => {
 });
 //Add expense
 app.post("/budget/addExpense", async (req, res) => {
-  const { expense_name, amount, date, budget_id } = req.body;
+  const { user_id, expense_name, amount, date, budget_id } = req.body;
 
   try {
     // Create the expense using the Expense model
     const expense = await Expense.create({
+      user_id,
       expense_name,
       amount,
       date,
       budget_id,
     });
 
-    const budget = await Budget.findByPk(budget_id);
-    if (budget) {
-      const budgetAmount = new Decimal(budget.maximum_spending);
-      const expenseAmount = new Decimal(amount);
-      budget.maximum_spending = budgetAmount.minus(expenseAmount).toNumber();
-      await budget.save();
-    }
-    // Return the created expense and updated budget as the response
-    res.json({ expense, budget });
+    res.json({ expense });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to create expense" });
   }
 });
 
-// // View expenses
-// app.get("/budget/expenses", async (req, res) => {
-//   try {
-//     // Fetch all expenses and include the associated budget information
-//     const expenses = await Expense.findAll({
-//       include: {
-//         model: Budget,
-//         attributes: ["id", "user_id", "budget_name", "maximum_spending"],
-//       },
-//     });
+// View expenses
+app.get("/expenses", async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    const expenses = await Expense.findAll({
+      include: [
+        {
+          model: Budget,
+          attributes: ["id", "user_id", "budget_name", "maximum_spending"],
+          where: { user_id: userId }, // Filter by user ID
+          include: {
+            model: User,
+            attributes: [], // Exclude user attributes from the result
+          },
+        },
+      ],
+    });
 
-//     res.json(expenses);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Failed to fetch expenses" });
-//   }
-// });
+    res.json(expenses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch expenses" });
+  }
+});
+app.get("/budgets", async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    const budgets = await Budget.findAll({ where: { user_id: userId } });
+    res.json(budgets);
+  } catch (error) {
+    console.error("Failed to fetch budgets:", error);
+    res.status(500).json({ error: "Failed to fetch budgets" });
+  }
+});
+app.delete("/budgets/:id", async (req, res) => {
+  const budgetId = req.params.id;
+
+  try {
+    // Find the budget by ID
+    const budget = await Budget.findByPk(budgetId);
+
+    if (!budget) {
+      return res.status(404).json({ error: "Budget not found" });
+    }
+
+    // Delete the budget
+    await budget.destroy();
+
+    res.json({ message: "Budget deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete budget" });
+  }
+});
+
+app.put("/budgets/:id", async (req, res) => {
+  const budgetId = req.params.id;
+  const { budget_name, maximum_spending } = req.body;
+
+  try {
+    // Find the budget by ID
+    const budget = await Budget.findByPk(budgetId);
+
+    if (!budget) {
+      return res.status(404).json({ error: "Budget not found" });
+    }
+
+    // Update the budget data
+    budget.budget_name = budget_name;
+    budget.maximum_spending = maximum_spending;
+    await budget.save();
+
+    res.json({ message: "Budget updated successfully", budget });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to update budget" });
+  }
+});
+
+// DELETE an expense by ID
+app.delete("/expenses/:id", async (req, res) => {
+  const expenseId = req.params.id;
+
+  try {
+    // Find the expense by ID
+    const expense = await Expense.findByPk(expenseId);
+
+    if (!expense) {
+      return res.status(404).json({ error: "Expense not found" });
+    }
+
+    // Delete the expense
+    await expense.destroy();
+
+    res.json({ message: "Expense deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete expense" });
+  }
+});
+// UPDATE an expense by ID
+app.put("/expenses/:id", async (req, res) => {
+  const expenseId = req.params.id;
+  const { expense_name, amount, date, budget_id } = req.body;
+
+  try {
+    // Find the expense by ID
+    const expense = await Expense.findByPk(expenseId);
+
+    if (!expense) {
+      return res.status(404).json({ error: "Expense not found" });
+    }
+
+    // Update the expense data
+    expense.expense_name = expense_name;
+    expense.amount = amount;
+    expense.date = date;
+    expense.budget_id = budget_id;
+    await expense.save();
+
+    res.json({ message: "Expense updated successfully", expense });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to update expense" });
+  }
+});
+
+app.post("/logout", (req, res) => {
+  res.setHeader("x-access-token", "");
+  res.json({ message: "Logged out successfully" });
+});
 
 // app.get("/analytics", (req, res) => {
 //   const userId = req.query.userId;
