@@ -1,13 +1,6 @@
 const express = require("express");
-//const mysql2 = require("mysql2");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-// const jwt = require("jsonwebtoken");
-// const bcrypt = require("bcrypt");
-// const User = require("./models/User");
-// const Expense = require("./models/Expense");
-// const Budget = require("./models/Budget");
-// const Decimal = require("decimal.js");
 const sequelize = require("./config/database");
 //const config = require("./config/auth.config");
 const { createTokens, validateToken } = require("./JWT");

@@ -7,6 +7,8 @@ const { verifyToken } = require("../JWT");
 const router = express.Router();
 
 router.post("/signup", (req, res) => {
+  console.log("inside signup");
+
   const { user, pwd, confirmPassword } = req.body;
   if (pwd !== confirmPassword) {
     return res.status(400).json({ error: "Passwords do not match" });
@@ -46,11 +48,12 @@ router.post("/signup", (req, res) => {
 
 // User login
 router.post("/login", async (req, res) => {
+  console.log("inside login");
   const { user, pwd } = req.body;
 
   const users = await User.findOne({ where: { user: user } });
   if (!users) res.status(400).json({ error: "User Doesnt exist" });
-
+  // fix
   const dbPassword = users.pwd;
   bcrypt.compare(pwd, dbPassword).then((match) => {
     if (!match) {

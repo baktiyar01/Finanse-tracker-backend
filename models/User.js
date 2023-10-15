@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database"); // Assuming you have a separate file for establishing the Sequelize connection
+const sequelize = require("../config/database");
 
 const User = sequelize.define("User", {
   id: {
@@ -9,11 +9,11 @@ const User = sequelize.define("User", {
     autoIncrement: true,
   },
   user: {
-    type: DataTypes.STRING(45),
+    type: DataTypes.STRING,
     allowNull: false,
   },
   pwd: {
-    type: DataTypes.STRING(45),
+    type: DataTypes.STRING,
     allowNull: false,
   },
 });
