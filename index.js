@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["https://finance-tracker-frontend-dusky.vercel.app/"],
+    origin: ["https://finance-tracker-frontend-dusky.vercel.app"],
     methods: ["POST", "GET", "PUT", "DELETE"],
     credentials: true,
   })
