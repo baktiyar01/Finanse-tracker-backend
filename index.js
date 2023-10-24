@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const sequelize = require("./config/database");
-//const config = require("./config/auth.config");
 const { createTokens, validateToken } = require("./JWT");
 const authRoutes = require("./routes/authRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");

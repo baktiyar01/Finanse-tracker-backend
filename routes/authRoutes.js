@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const config = require("../config/auth.config");
+require("dotenv").config();
 const { verifyToken } = require("../JWT");
 const router = express.Router();
 
@@ -63,7 +63,7 @@ router.post("/login", async (req, res) => {
     } else {
       const token = jwt.sign(
         { user: users.user, id: users.id },
-        config.secret,
+        process.env.SECRET_KEY,
         {
           allowInsecureKeySizes: true,
           expiresIn: 24 * 60 * 60 * 1000, // 24h
