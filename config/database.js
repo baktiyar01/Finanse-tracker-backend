@@ -3,8 +3,8 @@ require("dotenv").config();
 // Create a new Sequelize instance
 const sequelize = new Sequelize({
   dialect: "mysql",
-  host: "aqshasqlserver.mysql.database.azure.com",
-  database: "diploma",
+  host: "bbqmafjjrmoskj8bgpyy-mysql.services.clever-cloud.com",
+  database: "bbqmafjjrmoskj8bgpyy",
   username: process.env.DB_ADMIN,
   password: process.env.DB_PASSWORD,
   port: 3306,
